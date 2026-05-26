@@ -25,7 +25,13 @@ if(NOT WIN32 AND NOT SDL2_FOUND)
     separate_arguments(SDL2_CFLAGS_LIST UNIX_COMMAND "${SDL2_CFLAGS}")
 endif()
 
-add_executable(Mosaic src/main.cpp)
+set(SOURCES
+    src/api/command_buffer.cpp
+    src/core/device_executor.cpp
+    src/main.cpp
+)
+
+add_executable(Mosaic ${SOURCES})
 
 if(SDL2_FOUND)
     target_link_libraries(Mosaic PRIVATE SDL2::SDL2)
