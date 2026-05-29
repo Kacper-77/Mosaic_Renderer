@@ -12,8 +12,7 @@ private:
     const MosaicVertexBuffer* m_currentVertexBuffer = nullptr;
     const MosaicIndexBuffer*  m_currentIndexBuffer  = nullptr;
 
-    void BinTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2);
-
 public:
     void Execute(const MosaicCommandBuffer& cmdBuffer, uint32_t* vram, int width, int height);
+    void BinTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, int width, int height);
 };

@@ -4,10 +4,8 @@
 #include <cstdint>
 #include "../api/mosaic_types.h"
 
-/* 32x32 good for L1 cache */
-constexpr int TILE_SIZE = 32;
+constexpr int TILE_SIZE = 64;
 
-/* Prepared to insert into tile */
 struct RasterPrimitive {
     Vertex v0, v1, v2;
 };

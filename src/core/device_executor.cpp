@@ -3,16 +3,76 @@
 #include <cstring>
 #include <iostream>
 
-void MosaicDeviceExecutor::BinTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2) {
+static float Edge(float ax, float ay,
+                  float bx, float by,
+                  float px, float py) {
+    return (px - ax) * (by - ay)
+         - (py - ay) * (bx - ax);
+}
+
+static void RasterizeTriangle(const Vertex& v0,
+                       const Vertex& v1,
+                       const Vertex& v2,
+                       uint32_t* vram,
+                       int width,
+                       int x0, int y0,
+                       int x1, int y1) {
+    float area = Edge(v0.position.x, v0.position.y,
+                      v1.position.x, v1.position.y,
+                      v2.position.x, v2.position.y);
+
+    if (area == 0) return;
+
+    Vertex a = v0;
+    Vertex b = v1;
+    Vertex c = v2;
+    
+    if (area < 0) {
+        std::swap(b, c);
+    }
+
+    for (int y = y0; y < y1; ++y) {
+        for (int x = x0; x < x1; ++x) {
+            float px = x + 0.5f;
+            float py = y + 0.5f;
+
+            float w0 = Edge(b.position.x, b.position.y,
+                            b.position.x, b.position.y,
+                            px, py);
+
+            float w1 = Edge(c.position.x, c.position.y,
+                            a.position.x, a.position.y,
+                            px, py);
+
+            float w2 = Edge(a.position.x, a.position.y,
+                            b.position.x, b.position.y,
+                            px, py);
+
+            if (w0 >= 0 && w1 >= 0 && w2 >= 0) vram[y * width + x] = 0xFF00FF00;
+        }
+    }
+}
+
+void MosaicDeviceExecutor::BinTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, int width, int height) {
     float minX = std::min({v0.position.x, v1.position.x, v2.position.x});
     float maxX = std::max({v0.position.x, v1.position.x, v2.position.x});
     float minY = std::min({v0.position.y, v1.position.y, v2.position.y});
     float maxY = std::max({v0.position.y, v1.position.y, v2.position.y});
 
-    int startTileX = std::max(0, static_cast<int>(minX) / TILE_SIZE);
-    int endTileX   = std::min(m_tileGrid.tileCountX - 1, static_cast<int>(maxX) / TILE_SIZE);
-    int startTileY = std::max(0, static_cast<int>(minY) / TILE_SIZE);
-    int endTileY   = std::min(m_tileGrid.tileCountY - 1, static_cast<int>(maxY) / TILE_SIZE);
+    int minPixelX = static_cast<int>(std::floor(minX));
+    int maxPixelX = static_cast<int>(std::ceil(maxX)) - 1;
+    int minPixelY = static_cast<int>(std::floor(minY));
+    int maxPixelY = static_cast<int>(std::ceil(maxY)) - 1;
+
+    minPixelX = std::max(0, minPixelX);
+    minPixelY = std::max(0, minPixelY);
+    maxPixelX = std::min(width - 1, maxPixelX);
+    maxPixelY = std::min(height - 1, maxPixelY);
+
+    int startTileX = std::max(0, minPixelX / TILE_SIZE);
+    int endTileX   = std::min(m_tileGrid.tileCountX - 1, maxPixelX / TILE_SIZE);
+    int startTileY = std::max(0, minPixelY / TILE_SIZE);
+    int endTileY   = std::min(m_tileGrid.tileCountY - 1, maxPixelY / TILE_SIZE);
 
     RasterPrimitive prim = { v0, v1, v2 };
     for (int ty = startTileY; ty <= endTileY; ++ty) {
@@ -73,28 +133,38 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
 
                 // BINNING PASS
                 for (uint32_t i = 0; i < cmd.indexCount; i += 3) {
-                    const Vertex& v0 = vertices[indices[i + 0]];
+                    const Vertex& v0 = vertices[indices[i]];
                     const Vertex& v1 = vertices[indices[i + 1]];
                     const Vertex& v2 = vertices[indices[i + 2]];
 
-                    BinTriangle(v0, v1, v2);
+                    BinTriangle(v0, v1, v2, width, height);
                 }
 
-                // RENDER / DEBUG PASS
+                // RENDER
                 for (const auto& tile : m_tileGrid.tiles) {
-                    if (tile.primitives.empty()) continue;
+                    if (tile.primitives.empty())
+                        continue;
 
                     int pixelStartX = tile.x * TILE_SIZE;
-                    int pixelEndX   = std::min(width, pixelStartX + TILE_SIZE);
                     int pixelStartY = tile.y * TILE_SIZE;
-                    int pixelEndY   = std::min(height, pixelStartY + TILE_SIZE);
 
-                    for (int y = pixelStartY; y < pixelEndY; ++y) {
-                        for (int x = pixelStartX; x < pixelEndX; ++x) {
-                            if (x == pixelStartX || x == pixelEndX - 1 || y == pixelStartY || y == pixelEndY - 1) {
-                                vram[y * width + x] = 0xFF00FF00; // Zielony kolor diagnostyczny
-                            }
-                        }
+                    int pixelEndX = std::min(width,  pixelStartX + TILE_SIZE);
+                    int pixelEndY = std::min(height, pixelStartY + TILE_SIZE);
+
+                    // raster bounds per tile
+                    for (const auto& prim : tile.primitives)
+                    {
+                        RasterizeTriangle(
+                            prim.v0,
+                            prim.v1,
+                            prim.v2,
+                            vram,
+                            width,
+                            pixelStartX,
+                            pixelStartY,
+                            pixelEndX,
+                            pixelEndY
+                        );
                     }
                 }
                 break;
