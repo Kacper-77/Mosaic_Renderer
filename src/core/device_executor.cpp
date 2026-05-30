@@ -152,8 +152,7 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
                     int pixelEndY = std::min(height, pixelStartY + TILE_SIZE);
 
                     // raster bounds per tile
-                    for (const auto& prim : tile.primitives)
-                    {
+                    for (const auto& prim : tile.primitives) {
                         RasterizeTriangle(
                             prim.v0,
                             prim.v1,

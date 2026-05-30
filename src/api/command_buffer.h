@@ -35,7 +35,6 @@ private:
 
 public:
     void Reset();
-    
     void CmdClear(uint32_t color);
     void CmdBindVertexBuffer(const MosaicVertexBuffer* vertexBuffer);
     void CmdBindIndexBuffer(const MosaicIndexBuffer* indexBuffer);
