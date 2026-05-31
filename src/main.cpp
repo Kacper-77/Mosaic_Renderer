@@ -22,19 +22,23 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         { { 540.0f, 260.0f, 0.0f, 1.0f }, 0xFFFF0000 }, 
         { { 740.0f, 260.0f, 0.0f, 1.0f }, 0xFF00FF00 }, 
         { { 740.0f, 460.0f, 0.0f, 1.0f }, 0xFF0000FF }, 
-        { { 600.0f, 600.0f, 0.0f, 1.0f }, 0xFFFFFFFF }
+        { { 600.0f, 600.0f, 0.0f, 1.0f }, 0xFFFFFFFF },
+        { { 100.0f, 250.0f, 0.0f, 0.0f }, 0xFFFFFFFF }, 
+        { { 200.0f, 200.0f, 0.0f, 0.0f }, 0xFFFFFFFF },
+        { { 200.0f, 360.0f, 0.0f, 0.0f }, 0xFFFFFFFF }
     };
 
     uint32_t quadIndices[] = {
         0, 1, 2,
-        0, 2, 3 
+        0, 2, 3,
+        4, 5, 6 
     };
 
     MosaicVertexBuffer vbo;
-    vbo.SetData(quadVertices, 4);
+    vbo.SetData(quadVertices, 7);
 
     MosaicIndexBuffer ibo;
-    ibo.SetData(quadIndices, 6);
+    ibo.SetData(quadIndices, 9);
 
     MosaicCommandBuffer cmdBuffer;
     MosaicDeviceExecutor executor;
@@ -57,7 +61,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         cmdBuffer.CmdBindVertexBuffer(&vbo);
         cmdBuffer.CmdBindIndexBuffer(&ibo);
         
-        cmdBuffer.CmdDrawIndexed(6);
+        cmdBuffer.CmdDrawIndexed(9);
 
         executor.Execute(cmdBuffer, virtual_vram.data(), SCREEN_WIDTH, SCREEN_HEIGHT);
 

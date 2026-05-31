@@ -4,7 +4,7 @@
 #include <cstdint>
 #include "../api/mosaic_types.h"
 
-constexpr int TILE_SIZE = 64;
+constexpr int TILE_SIZE = 32;
 
 struct RasterPrimitive {
     Vertex v0, v1, v2;
