@@ -37,7 +37,7 @@ static void RasterizeTriangle(const Vertex& v0,
             float py = y + 0.5f;
 
             float w0 = Edge(b.position.x, b.position.y,
-                            b.position.x, b.position.y,
+                            c.position.x, c.position.y,
                             px, py);
 
             float w1 = Edge(c.position.x, c.position.y,
@@ -48,16 +48,16 @@ static void RasterizeTriangle(const Vertex& v0,
                             b.position.x, b.position.y,
                             px, py);
 
-            if (w0 >= 0 && w1 >= 0 && w2 >= 0) vram[y * width + x] = 0xFF00FF00;
+            if (w0 >= 0 && w1 >= 0 && w2 >= 0) vram[y * width + x] = v0.color;
         }
     }
 }
 
 void MosaicDeviceExecutor::BinTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, int width, int height) {
-    float minX = std::min({v0.position.x, v1.position.x, v2.position.x});
-    float maxX = std::max({v0.position.x, v1.position.x, v2.position.x});
-    float minY = std::min({v0.position.y, v1.position.y, v2.position.y});
-    float maxY = std::max({v0.position.y, v1.position.y, v2.position.y});
+    float minX = std::min({ v0.position.x, v1.position.x, v2.position.x });
+    float maxX = std::max({ v0.position.x, v1.position.x, v2.position.x });
+    float minY = std::min({ v0.position.y, v1.position.y, v2.position.y });
+    float maxY = std::max({ v0.position.y, v1.position.y, v2.position.y });
 
     int minPixelX = static_cast<int>(std::floor(minX));
     int maxPixelX = static_cast<int>(std::ceil(maxX)) - 1;

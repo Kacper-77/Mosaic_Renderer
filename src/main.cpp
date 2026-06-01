@@ -19,13 +19,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     std::vector<uint32_t> virtual_vram(SCREEN_WIDTH * SCREEN_HEIGHT, 0xFF000000);
 
     Vertex quadVertices[] = {
-        { { 540.0f, 260.0f, 0.0f, 1.0f }, 0xFFFF0000 }, 
+        { { 540.0f, 260.0f, 0.0f, 1.0f }, 0xFF00FF00 }, 
         { { 740.0f, 260.0f, 0.0f, 1.0f }, 0xFF00FF00 }, 
         { { 740.0f, 460.0f, 0.0f, 1.0f }, 0xFF0000FF }, 
         { { 600.0f, 600.0f, 0.0f, 1.0f }, 0xFFFFFFFF },
-        { { 100.0f, 250.0f, 0.0f, 0.0f }, 0xFFFFFFFF }, 
-        { { 200.0f, 200.0f, 0.0f, 0.0f }, 0xFFFFFFFF },
-        { { 200.0f, 360.0f, 0.0f, 0.0f }, 0xFFFFFFFF }
+        { { 100.0f, 250.0f, 0.0f, 1.0f }, 0xFFFFFFFF }, 
+        { { 200.0f, 200.0f, 0.0f, 1.0f }, 0xFFFFFFFF },
+        { { 200.0f, 360.0f, 0.0f, 1.0f }, 0xFFFFFFFF }
     };
 
     uint32_t quadIndices[] = {
