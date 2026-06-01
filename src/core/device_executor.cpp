@@ -3,6 +3,12 @@
 #include <cstring>
 #include <iostream>
 
+static uint8_t ColorSat(float num) {
+    if (num < 0.0f) return 0;
+    if (num > 255.0f) return 255;
+    return static_cast<uint8_t>(num);
+}
+
 static float Edge(float ax, float ay,
                   float bx, float by,
                   float px, float py) {
@@ -11,25 +17,48 @@ static float Edge(float ax, float ay,
 }
 
 static void RasterizeTriangle(const Vertex& v0,
-                       const Vertex& v1,
-                       const Vertex& v2,
-                       uint32_t* vram,
-                       int width,
-                       int x0, int y0,
-                       int x1, int y1) {
+                              const Vertex& v1,
+                              const Vertex& v2,
+                              uint32_t* vram,
+                              int width,
+                              int x0, int y0,
+                              int x1, int y1) {
     float area = Edge(v0.position.x, v0.position.y,
                       v1.position.x, v1.position.y,
                       v2.position.x, v2.position.y);
 
     if (area == 0) return;
+    float absArea = std::abs(area);  // For barycentric subdivision
 
     Vertex a = v0;
     Vertex b = v1;
     Vertex c = v2;
-    
+
     if (area < 0) {
         std::swap(b, c);
     }
+
+    // "Unpacking" colors of each vertex
+    uint32_t colorA = v0.color;
+    float aR = static_cast<float>((colorA >> 16) & 0xFF);
+    float aG = static_cast<float>((colorA >> 8)  & 0xFF);
+    float aB = static_cast<float>((colorA)       & 0xFF);
+
+    uint32_t colorB = v1.color;
+    float bR = static_cast<float>((colorB >> 16) & 0xFF);
+    float bG = static_cast<float>((colorB >> 8)  & 0xFF);
+    float bB = static_cast<float>((colorB)       & 0xFF);
+
+    uint32_t colorC = v2.color;
+    float cR = static_cast<float>((colorC >> 16) & 0xFF);
+    float cG = static_cast<float>((colorC >> 8)  & 0xFF);
+    float cB = static_cast<float>((colorC)       & 0xFF);
+
+    const float invArea = 1.0f / absArea;
+
+    float aR_inv = aR * invArea; float aG_inv = aG * invArea; float aB_inv = aB * invArea;
+    float bR_inv = bR * invArea; float bG_inv = bG * invArea; float bB_inv = bB * invArea;
+    float cR_inv = cR * invArea; float cG_inv = cG * invArea; float cB_inv = cB * invArea;
 
     for (int y = y0; y < y1; ++y) {
         for (int x = x0; x < x1; ++x) {
@@ -48,7 +77,17 @@ static void RasterizeTriangle(const Vertex& v0,
                             b.position.x, b.position.y,
                             px, py);
 
-            if (w0 >= 0 && w1 >= 0 && w2 >= 0) vram[y * width + x] = v0.color;
+            if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
+                float r = w0 * aR_inv + w1 * bR_inv + w2 * cR_inv;
+                float g = w0 * aG_inv + w1 * bG_inv + w2 * cG_inv;
+                float b = w0 * aB_inv + w1 * bB_inv + w2 * cB_inv;
+
+                uint8_t finalR = ColorSat(r);
+                uint8_t finalG = ColorSat(g);
+                uint8_t finalB = ColorSat(b);
+
+                vram[y * width + x] = (0xFF << 24) | (finalR << 16) | (finalG << 8) | finalB;
+            }
         }
     }
 }
