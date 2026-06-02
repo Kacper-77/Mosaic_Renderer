@@ -28,33 +28,33 @@ static void RasterizeTriangle(const Vertex& v0,
                       v2.position.x, v2.position.y);
 
     if (area == 0) return;
-    float absArea = std::abs(area);  // For barycentric subdivision
 
     Vertex a = v0;
     Vertex b = v1;
     Vertex c = v2;
 
     if (area < 0) {
+        area = -area;
         std::swap(b, c);
     }
 
     // "Unpacking" colors of each vertex
-    uint32_t colorA = v0.color;
+    uint32_t colorA = a.color;
     float aR = static_cast<float>((colorA >> 16) & 0xFF);
     float aG = static_cast<float>((colorA >> 8)  & 0xFF);
     float aB = static_cast<float>((colorA)       & 0xFF);
 
-    uint32_t colorB = v1.color;
+    uint32_t colorB = b.color;
     float bR = static_cast<float>((colorB >> 16) & 0xFF);
     float bG = static_cast<float>((colorB >> 8)  & 0xFF);
     float bB = static_cast<float>((colorB)       & 0xFF);
 
-    uint32_t colorC = v2.color;
+    uint32_t colorC = c.color;
     float cR = static_cast<float>((colorC >> 16) & 0xFF);
     float cG = static_cast<float>((colorC >> 8)  & 0xFF);
     float cB = static_cast<float>((colorC)       & 0xFF);
 
-    const float invArea = 1.0f / absArea;
+    const float invArea = 1.0f / area;
 
     float aR_inv = aR * invArea; float aG_inv = aG * invArea; float aB_inv = aB * invArea;
     float bR_inv = bR * invArea; float bG_inv = bG * invArea; float bB_inv = bB * invArea;

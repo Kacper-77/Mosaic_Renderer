@@ -5,8 +5,8 @@
 #include "api/mosaic_buffers.h"
 #include "core/device_executor.h"
 
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 720;
+const int SCREEN_WIDTH = 1920;
+const int SCREEN_HEIGHT = 1080;
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) return 1;
@@ -22,10 +22,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         { { 540.0f, 260.0f, 0.0f, 1.0f }, 0xFF00FF00 }, 
         { { 740.0f, 260.0f, 0.0f, 1.0f }, 0xFF00FF00 }, 
         { { 740.0f, 460.0f, 0.0f, 1.0f }, 0xFF0000FF }, 
-        { { 600.0f, 600.0f, 0.0f, 1.0f }, 0xFF000000 },
+        { { 600.0f, 600.0f, 0.0f, 1.0f }, 0xFF0000 },
         { { 100.0f, 250.0f, 0.0f, 1.0f }, 0xEE4B2B }, 
         { { 200.0f, 200.0f, 0.0f, 1.0f }, 0xEE4B2B },
-        { { 200.0f, 360.0f, 0.0f, 1.0f }, 0xFF00FF00 }
+        { { 200.0f, 360.0f, 0.0f, 1.0f }, 0xFF00FF }
     };
 
     uint32_t quadIndices[] = {
