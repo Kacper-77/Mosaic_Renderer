@@ -170,11 +170,41 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
                 const Vertex* vertices = m_currentVertexBuffer->GetRawData();
                 const uint32_t* indices = m_currentIndexBuffer->GetRawData();
 
-                // BINNING PASS
+                // 45 degree test
+                static float angle = 0.0f;
+                angle += 0.01f; 
+                
+                Matrix4 modelMatrix = Matrix4::RotateY(angle);
+
+                // Viewport Transform
+                float halfWidth = width * 0.5f;
+                float halfHeight = height * 0.5f;
+
+                // BINNING PASS | VERTEX SHADER
                 for (uint32_t i = 0; i < cmd.indexCount; i += 3) {
-                    const Vertex& v0 = vertices[indices[i]];
-                    const Vertex& v1 = vertices[indices[i + 1]];
-                    const Vertex& v2 = vertices[indices[i + 2]];
+                    Vertex v0 = vertices[indices[i]];
+                    Vertex v1 = vertices[indices[i + 1]];
+                    Vertex v2 = vertices[indices[i + 2]];
+
+                    // 2. STAGE: VERTEX SHADER
+                    Vector4 p0 = modelMatrix.Multiply({v0.position.x, v0.position.y, v0.position.z, 1.0f});
+                    Vector4 p1 = modelMatrix.Multiply({v1.position.x, v1.position.y, v1.position.z, 1.0f});
+                    Vector4 p2 = modelMatrix.Multiply({v2.position.x, v2.position.y, v2.position.z, 1.0f});
+
+                    // 3. STAGE: PERSPECTIVE DIVIDE
+                    p0.x /= p0.w; p0.y /= p0.w;
+                    p1.x /= p1.w; p1.y /= p1.w;
+                    p2.x /= p2.w; p2.y /= p2.w;
+
+                    // 4. STAGE: VIEWPORT TRANSFORM
+                    v0.position.x = (p0.x * halfWidth) + halfWidth;
+                    v0.position.y = (-p0.y * halfHeight) + halfHeight;
+                    
+                    v1.position.x = (p1.x * halfWidth) + halfWidth;
+                    v1.position.y = (-p1.y * halfHeight) + halfHeight;
+
+                    v2.position.x = (p2.x * halfWidth) + halfWidth;
+                    v2.position.y = (-p2.y * halfHeight) + halfHeight;
 
                     BinTriangle(v0, v1, v2, width, height);
                 }
@@ -190,17 +220,13 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
                     int pixelEndX = std::min(width,  pixelStartX + TILE_SIZE);
                     int pixelEndY = std::min(height, pixelStartY + TILE_SIZE);
 
-                    // raster bounds per tile
                     for (const auto& prim : tile.primitives) {
                         RasterizeTriangle(
-                            prim.v0,
-                            prim.v1,
-                            prim.v2,
-                            vram,
-                            width,
-                            pixelStartX,
-                            pixelStartY,
-                            pixelEndX,
+                            prim.v0, prim.v1, prim.v2,
+                            vram, width,
+                            pixelStartX, 
+                            pixelStartY, 
+                            pixelEndX, 
                             pixelEndY
                         );
                     }

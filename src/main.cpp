@@ -5,8 +5,8 @@
 #include "api/mosaic_buffers.h"
 #include "core/device_executor.h"
 
-const int SCREEN_WIDTH = 1920;
-const int SCREEN_HEIGHT = 1080;
+const int SCREEN_WIDTH = 1080;
+const int SCREEN_HEIGHT = 720;
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) return 1;
@@ -19,26 +19,43 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     std::vector<uint32_t> virtual_vram(SCREEN_WIDTH * SCREEN_HEIGHT, 0xFF000000);
 
     Vertex quadVertices[] = {
-        { { 540.0f, 260.0f, 0.0f, 1.0f }, 0xFF00FF00 }, 
-        { { 740.0f, 260.0f, 0.0f, 1.0f }, 0xFF00FF00 }, 
-        { { 740.0f, 460.0f, 0.0f, 1.0f }, 0xFF0000FF }, 
-        { { 600.0f, 600.0f, 0.0f, 1.0f }, 0xFF0000 },
-        { { 100.0f, 250.0f, 0.0f, 1.0f }, 0xEE4B2B }, 
-        { { 200.0f, 200.0f, 0.0f, 1.0f }, 0xEE4B2B },
-        { { 200.0f, 360.0f, 0.0f, 1.0f }, 0xFF00FF }
+        { { -0.5f,  0.5f, 0.0f, 1.0f }, 0xFF00FF00 }, 
+        { {  0.5f,  0.5f, 0.0f, 1.0f }, 0xFF00FF00 }, 
+        { {  0.5f, -0.5f, 0.0f, 1.0f }, 0xFF0000FF }, 
+        { { -0.5f, -0.5f, 0.0f, 1.0f }, 0xFF000000 }  
     };
 
     uint32_t quadIndices[] = {
         0, 1, 2,
-        0, 2, 3,
-        4, 5, 6 
+        0, 2, 3
+    };
+
+    Vertex cubeVertices[] = {
+        { { -0.5f,  0.5f,  0.5f, 1.0f }, 0xFFFF0000 }, 
+        { {  0.5f,  0.5f,  0.5f, 1.0f }, 0xFF00FF00 }, 
+        { {  0.5f, -0.5f,  0.5f, 1.0f }, 0xFF0000FF }, 
+        { { -0.5f, -0.5f,  0.5f, 1.0f }, 0xFFFFFF00 }, 
+
+        { { -0.5f,  0.5f, -0.5f, 1.0f }, 0xFFFF00FF }, 
+        { {  0.5f,  0.5f, -0.5f, 1.0f }, 0xFF00FFFF }, 
+        { {  0.5f, -0.5f, -0.5f, 1.0f }, 0xFFFFFFFF }, 
+        { { -0.5f, -0.5f, -0.5f, 1.0f }, 0xFF808080 }  
+    };
+
+    uint32_t cubeIndices[] = {
+        0, 1, 2,  0, 2, 3,
+        4, 6, 5,  4, 7, 6,
+        4, 1, 0,  4, 5, 1,
+        3, 2, 6,  3, 6, 7,
+        4, 0, 3,  4, 3, 7,
+        1, 5, 6,  1, 6, 2
     };
 
     MosaicVertexBuffer vbo;
-    vbo.SetData(quadVertices, 7);
+    vbo.SetData(cubeVertices, 8);
 
     MosaicIndexBuffer ibo;
-    ibo.SetData(quadIndices, 9);
+    ibo.SetData(cubeIndices, 36);
 
     MosaicCommandBuffer cmdBuffer;
     MosaicDeviceExecutor executor;
@@ -61,7 +78,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         cmdBuffer.CmdBindVertexBuffer(&vbo);
         cmdBuffer.CmdBindIndexBuffer(&ibo);
         
-        cmdBuffer.CmdDrawIndexed(9);
+        cmdBuffer.CmdDrawIndexed(36);
 
         executor.Execute(cmdBuffer, virtual_vram.data(), SCREEN_WIDTH, SCREEN_HEIGHT);
 
