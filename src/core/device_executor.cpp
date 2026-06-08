@@ -172,9 +172,14 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
 
                 // 45 degree test
                 static float angle = 0.0f;
-                angle += 0.01f; 
-                
-                Matrix4 modelMatrix = Matrix4::RotateY(angle);
+                angle += 0.01f;
+                 
+                Matrix4 m1 = Matrix4::RotateX(angle);
+                Matrix4 m2 = Matrix4::RotateY(angle);
+                Matrix4 m3 = Matrix4::RotateZ(angle);
+
+                Matrix4 modelMatrix = m1 * m2;
+                // modelMatrix = m2 * m3;
 
                 // Viewport Transform
                 float halfWidth = width * 0.5f;

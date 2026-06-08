@@ -30,6 +30,15 @@ struct Matrix4 {
         };
     }
 
+    static Matrix4 RotateX(float angleRadians) {
+        Matrix4 mat = Identity();               
+        float c = std::cos(angleRadians);       
+        float s = std::sin(angleRadians);       
+        mat.m[1][1] = c; mat.m[2][1] = -s;
+        mat.m[1][2] = s; mat.m[2][2] = c;
+        return mat;
+    }
+
     static Matrix4 RotateY(float angleRadians) {
         Matrix4 mat = Identity();
         float c = std::cos(angleRadians);
@@ -37,5 +46,43 @@ struct Matrix4 {
         mat.m[0][0] = c;  mat.m[2][0] = s;
         mat.m[0][2] = -s; mat.m[2][2] = c;
         return mat;
+    }
+
+    static Matrix4 RotateZ(float angleRadians) {
+        Matrix4 mat = Identity();
+        float c = std::cos(angleRadians);
+        float s = std::sin(angleRadians);
+        mat.m[0][0] = c; mat.m[1][0] = -s;
+        mat.m[0][1] = s; mat.m[1][1] = c;
+        return mat;
+    }
+    
+    Matrix4 operator*(const Matrix4& other) const {
+        Matrix4 res;
+        // Row 0
+        res.m[0][0] = m[0][0]*other.m[0][0] + m[0][1]*other.m[1][0] + m[0][2]*other.m[2][0] + m[0][3]*other.m[3][0];
+        res.m[0][1] = m[0][0]*other.m[0][1] + m[0][1]*other.m[1][1] + m[0][2]*other.m[2][1] + m[0][3]*other.m[3][1];
+        res.m[0][2] = m[0][0]*other.m[0][2] + m[0][1]*other.m[1][2] + m[0][2]*other.m[2][2] + m[0][3]*other.m[3][2];
+        res.m[0][3] = m[0][0]*other.m[0][3] + m[0][1]*other.m[1][3] + m[0][2]*other.m[2][3] + m[0][3]*other.m[3][3];
+
+        // Row 1
+        res.m[1][0] = m[1][0]*other.m[0][0] + m[1][1]*other.m[1][0] + m[1][2]*other.m[2][0] + m[1][3]*other.m[3][0];
+        res.m[1][1] = m[1][0]*other.m[0][1] + m[1][1]*other.m[1][1] + m[1][2]*other.m[2][1] + m[1][3]*other.m[3][1];
+        res.m[1][2] = m[1][0]*other.m[0][2] + m[1][1]*other.m[1][2] + m[1][2]*other.m[2][2] + m[1][3]*other.m[3][2];
+        res.m[1][3] = m[1][0]*other.m[0][3] + m[1][1]*other.m[1][3] + m[1][2]*other.m[2][3] + m[1][3]*other.m[3][3];
+
+        // Row 2
+        res.m[2][0] = m[2][0]*other.m[0][0] + m[2][1]*other.m[1][0] + m[2][2]*other.m[2][0] + m[2][3]*other.m[3][0];
+        res.m[2][1] = m[2][0]*other.m[0][1] + m[2][1]*other.m[1][1] + m[2][2]*other.m[2][1] + m[2][3]*other.m[3][1];
+        res.m[2][2] = m[2][0]*other.m[0][2] + m[2][1]*other.m[1][2] + m[2][2]*other.m[2][2] + m[2][3]*other.m[3][2];
+        res.m[2][3] = m[2][0]*other.m[0][3] + m[2][1]*other.m[1][3] + m[2][2]*other.m[2][3] + m[2][3]*other.m[3][3];
+
+        // Row 3
+        res.m[3][0] = m[3][0]*other.m[0][0] + m[3][1]*other.m[1][0] + m[3][2]*other.m[2][0] + m[3][3]*other.m[3][0];
+        res.m[3][1] = m[3][0]*other.m[0][1] + m[3][1]*other.m[1][1] + m[3][2]*other.m[2][1] + m[3][3]*other.m[3][1];
+        res.m[3][2] = m[3][0]*other.m[0][2] + m[3][1]*other.m[1][2] + m[3][2]*other.m[2][2] + m[3][3]*other.m[3][2];
+        res.m[3][3] = m[3][0]*other.m[0][3] + m[3][1]*other.m[1][3] + m[3][2]*other.m[2][3] + m[3][3]*other.m[3][3];
+
+        return res;
     }
 };
