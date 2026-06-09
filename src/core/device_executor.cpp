@@ -174,12 +174,13 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
                 static float angle = 0.0f;
                 angle += 0.01f;
                  
-                Matrix4 m1 = Matrix4::RotateX(angle);
-                Matrix4 m2 = Matrix4::RotateY(angle);
-                Matrix4 m3 = Matrix4::RotateZ(angle);
+                Matrix4 rotation = Matrix4::RotateX(angle) * Matrix4::RotateY(angle);
 
-                Matrix4 modelMatrix = m1 * m2;
-                // modelMatrix = m2 * m3;
+                Matrix4 translation = Matrix4::Translate(0.0f, 0.0f, -2.5f); 
+
+                Matrix4 projection = Matrix4::Perspective(60.0f, (float)width / height, 0.1f, 100.0f);
+
+                Matrix4 modelMatrix = projection * translation * rotation;
 
                 // Viewport Transform
                 float halfWidth = width * 0.5f;

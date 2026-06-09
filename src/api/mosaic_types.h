@@ -23,10 +23,10 @@ struct Matrix4 {
 
     Vector4 Multiply(const Vector4& v) const {
         return {
-            v.x * m[0][0] + v.y * m[1][0] + v.z * m[2][0] + v.w * m[3][0],
-            v.x * m[0][1] + v.y * m[1][1] + v.z * m[2][1] + v.w * m[3][1],
-            v.x * m[0][2] + v.y * m[1][2] + v.z * m[2][2] + v.w * m[3][2],
-            v.x * m[0][3] + v.y * m[1][3] + v.z * m[2][3] + v.w * m[3][3]
+            v.x * m[0][0] + v.y * m[0][1] + v.z * m[0][2] + v.w * m[0][3],  // X
+            v.x * m[1][0] + v.y * m[1][1] + v.z * m[1][2] + v.w * m[1][3],  // Y
+            v.x * m[2][0] + v.y * m[2][1] + v.z * m[2][2] + v.w * m[2][3],  // Z
+            v.x * m[3][0] + v.y * m[3][1] + v.z * m[3][2] + v.w * m[3][3]   // W
         };
     }
 
@@ -54,6 +54,31 @@ struct Matrix4 {
         float s = std::sin(angleRadians);
         mat.m[0][0] = c; mat.m[1][0] = -s;
         mat.m[0][1] = s; mat.m[1][1] = c;
+        return mat;
+    }
+
+    static Matrix4 Translate(float x, float y, float z) {
+        Matrix4 mat = Identity();
+        mat.m[0][3] = x;
+        mat.m[1][3] = y;
+        mat.m[2][3] = z;
+        return mat;
+    }
+
+    static Matrix4 Perspective(float fovDegrees, float aspect, float nearPlane, float farPlane) {
+        Matrix4 mat;
+        std::memset(&mat, 0, sizeof(Matrix4));
+
+        float fovRad = fovDegrees * (3.14159265f / 180.0f);
+        float tanHalfFov = std::tan(fovRad / 2.0f);
+
+        mat.m[0][0] = 1.0f / (aspect * tanHalfFov);
+        mat.m[1][1] = 1.0f / tanHalfFov;
+        mat.m[2][2] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+        mat.m[2][3] = -(2.0f * farPlane * nearPlane) / (farPlane - nearPlane);
+        
+        mat.m[3][2] = -1.0f; 
+        
         return mat;
     }
     
