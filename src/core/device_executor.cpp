@@ -193,9 +193,9 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
                     Vertex v2 = vertices[indices[i + 2]];
 
                     // 2. STAGE: VERTEX SHADER
-                    Vector4 p0 = modelMatrix.Multiply({v0.position.x, v0.position.y, v0.position.z, 1.0f});
-                    Vector4 p1 = modelMatrix.Multiply({v1.position.x, v1.position.y, v1.position.z, 1.0f});
-                    Vector4 p2 = modelMatrix.Multiply({v2.position.x, v2.position.y, v2.position.z, 1.0f});
+                    Vector4 p0 = modelMatrix.Multiply({v0.position.x, v0.position.y, v0.position.z, v0.position.w});
+                    Vector4 p1 = modelMatrix.Multiply({v1.position.x, v1.position.y, v1.position.z, v1.position.w});
+                    Vector4 p2 = modelMatrix.Multiply({v2.position.x, v2.position.y, v2.position.z, v2.position.w});
 
                     // 3. STAGE: PERSPECTIVE DIVIDE
                     p0.x /= p0.w; p0.y /= p0.w;

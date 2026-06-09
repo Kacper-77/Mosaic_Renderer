@@ -69,7 +69,7 @@ struct Matrix4 {
         Matrix4 mat;
         std::memset(&mat, 0, sizeof(Matrix4));
 
-        float fovRad = fovDegrees * (3.14159265f / 180.0f);
+        float fovRad = fovDegrees * (M_PI / 180.0f);
         float tanHalfFov = std::tan(fovRad / 2.0f);
 
         mat.m[0][0] = 1.0f / (aspect * tanHalfFov);
