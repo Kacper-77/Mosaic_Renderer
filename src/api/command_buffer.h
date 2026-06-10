@@ -32,7 +32,6 @@ struct CommandDrawIndexed {
 class MosaicCommandBuffer {
 private:
     std::vector<uint8_t> m_buffer;
-    std::vector<uint32_t> m_zBuffer;
 
 public:
     void Reset();

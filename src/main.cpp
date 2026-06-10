@@ -16,8 +16,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_Texture* streaming_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    std::vector<uint32_t> virtual_vram(SCREEN_WIDTH * SCREEN_HEIGHT, 0xFF000000);
-
     Vertex quadVertices[] = {
         { { -0.5f,  0.5f, 0.0f, 1.0f }, 0xFF00FF00 }, 
         { {  0.5f,  0.5f, 0.0f, 1.0f }, 0xFF00FF00 }, 
@@ -60,6 +58,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     MosaicCommandBuffer cmdBuffer;
     MosaicDeviceExecutor executor;
 
+    executor.SetVram(SCREEN_WIDTH * SCREEN_HEIGHT, 0xFF000000);
+
     bool is_running = true;
     SDL_Event event;
     uint8_t color_cycle = 0;
@@ -73,16 +73,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         uint32_t clear_color = (0xFF << 24) | (color_cycle << 16) | (20 << 8) | 30;
 
         cmdBuffer.Reset();
-        cmdBuffer.CmdClear(0xFAFAFAFA);
+        cmdBuffer.CmdClear(0xFAFAFA);
         
         cmdBuffer.CmdBindVertexBuffer(&vbo);
         cmdBuffer.CmdBindIndexBuffer(&ibo);
         
         cmdBuffer.CmdDrawIndexed(36);
 
-        executor.Execute(cmdBuffer, virtual_vram.data(), SCREEN_WIDTH, SCREEN_HEIGHT);
+        executor.Execute(cmdBuffer, executor.GetVram(), SCREEN_WIDTH, SCREEN_HEIGHT);
 
-        SDL_UpdateTexture(streaming_texture, nullptr, virtual_vram.data(), SCREEN_WIDTH * sizeof(uint32_t));
+        SDL_UpdateTexture(streaming_texture, nullptr, executor.GetVram(), SCREEN_WIDTH * sizeof(uint32_t));
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, streaming_texture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
