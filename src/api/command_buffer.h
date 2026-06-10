@@ -13,7 +13,6 @@ enum class CommandType : uint8_t {
     DrawIndexed
 };
 
-/* Payloads */
 struct CommandClear {
     uint32_t color;
 };
@@ -33,6 +32,7 @@ struct CommandDrawIndexed {
 class MosaicCommandBuffer {
 private:
     std::vector<uint8_t> m_buffer;
+    std::vector<uint32_t> m_zBuffer;
 
 public:
     void Reset();
