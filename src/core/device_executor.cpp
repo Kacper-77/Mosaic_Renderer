@@ -16,11 +16,9 @@ static float Edge(float ax, float ay,
          - (py - ay) * (bx - ax);
 }
 
-static void RasterizeTriangle(const Vertex& v0,
+void MosaicDeviceExecutor::RasterizeTriangle(const Vertex& v0,
                               const Vertex& v1,
                               const Vertex& v2,
-                              uint32_t* vram,
-                              int width,
                               int x0, int y0,
                               int x1, int y1) {
     float area = Edge(v0.position.x, v0.position.y,
@@ -78,15 +76,22 @@ static void RasterizeTriangle(const Vertex& v0,
                             px, py);
 
             if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
-                float r = w0 * aR_inv + w1 * bR_inv + w2 * cR_inv;
-                float g = w0 * aG_inv + w1 * bG_inv + w2 * cG_inv;
-                float b = w0 * aB_inv + w1 * bB_inv + w2 * cB_inv;
+                float pixelZ = (w0 * a.position.z + w1 * b.position.z + w2 * c.position.z) * invArea;
+                int pixelIdx = y * m_width + x;
 
-                uint8_t finalR = ColorSat(r);
-                uint8_t finalG = ColorSat(g);
-                uint8_t finalB = ColorSat(b);
+                if (pixelZ < m_zBuffer[pixelIdx]) {
+                    m_zBuffer[pixelIdx] = pixelZ;
 
-                vram[y * width + x] = (0xFF << 24) | (finalR << 16) | (finalG << 8) | finalB;
+                    float r = w0 * aR_inv + w1 * bR_inv + w2 * cR_inv;
+                    float g = w0 * aG_inv + w1 * bG_inv + w2 * cG_inv;
+                    float b = w0 * aB_inv + w1 * bB_inv + w2 * cB_inv;
+
+                    uint8_t finalR = ColorSat(r);
+                    uint8_t finalG = ColorSat(g);
+                    uint8_t finalB = ColorSat(b);
+
+                    m_vram[pixelIdx] = (0xFF << 24) | (finalR << 16) | (finalG << 8) | finalB;
+                }
             }
         }
     }
@@ -122,9 +127,9 @@ void MosaicDeviceExecutor::BinTriangle(const Vertex& v0, const Vertex& v1, const
     }
 }
 
-void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_t* vram, int width, int height) {
+void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer) {
     if (!m_gridInitialized) {
-        m_tileGrid.Initialize(width, height);
+        m_tileGrid.Initialize(m_width, m_height);
         m_gridInitialized = true;
     }
 
@@ -141,8 +146,7 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
                 CommandClear cmd;
                 std::memcpy(&cmd, &data[pc], sizeof(CommandClear));
                 pc += sizeof(CommandClear);
-
-                for (int i = 0; i < width * height; ++i) vram[i] = cmd.color;
+                ClearBuffers(cmd.color);  // Vram and Z-Buffer
                 m_tileGrid.ClearPrimitives();
                 break;
             }
@@ -178,13 +182,13 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
 
                 Matrix4 translation = Matrix4::Translate(0.0f, 0.0f, -2.5f); 
 
-                Matrix4 projection = Matrix4::Perspective(60.0f, (float)width / height, 0.1f, 100.0f);
+                Matrix4 projection = Matrix4::Perspective(60.0f, (float)m_width / m_height, 0.1f, 100.0f);
 
                 Matrix4 modelMatrix = projection * translation * rotation;
 
                 // Viewport Transform
-                float halfWidth = width * 0.5f;
-                float halfHeight = height * 0.5f;
+                float halfWidth  = m_width * 0.5f;
+                float halfHeight = m_height * 0.5f;
 
                 // BINNING PASS | VERTEX SHADER
                 for (uint32_t i = 0; i < cmd.indexCount; i += 3) {
@@ -198,21 +202,24 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
                     Vector4 p2 = modelMatrix.Multiply({v2.position.x, v2.position.y, v2.position.z, v2.position.w});
 
                     // 3. STAGE: PERSPECTIVE DIVIDE
-                    p0.x /= p0.w; p0.y /= p0.w;
-                    p1.x /= p1.w; p1.y /= p1.w;
-                    p2.x /= p2.w; p2.y /= p2.w;
+                    p0.x /= p0.w; p0.y /= p0.w; p0.z /= p0.w;
+                    p1.x /= p1.w; p1.y /= p1.w; p1.z /= p1.w;
+                    p2.x /= p2.w; p2.y /= p2.w; p2.z /= p2.w;
 
                     // 4. STAGE: VIEWPORT TRANSFORM
                     v0.position.x = (p0.x * halfWidth) + halfWidth;
                     v0.position.y = (-p0.y * halfHeight) + halfHeight;
+                    v0.position.z = p0.z;
                     
                     v1.position.x = (p1.x * halfWidth) + halfWidth;
                     v1.position.y = (-p1.y * halfHeight) + halfHeight;
+                    v1.position.z = p1.z;
 
                     v2.position.x = (p2.x * halfWidth) + halfWidth;
                     v2.position.y = (-p2.y * halfHeight) + halfHeight;
+                    v2.position.z = p2.z;
 
-                    BinTriangle(v0, v1, v2, width, height);
+                    BinTriangle(v0, v1, v2, m_width, m_height);
                 }
 
                 // RENDER
@@ -223,13 +230,12 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, uint32_
                     int pixelStartX = tile.x * TILE_SIZE;
                     int pixelStartY = tile.y * TILE_SIZE;
 
-                    int pixelEndX = std::min(width,  pixelStartX + TILE_SIZE);
-                    int pixelEndY = std::min(height, pixelStartY + TILE_SIZE);
+                    int pixelEndX = std::min(m_width,  pixelStartX + TILE_SIZE);
+                    int pixelEndY = std::min(m_height, pixelStartY + TILE_SIZE);
 
                     for (const auto& prim : tile.primitives) {
                         RasterizeTriangle(
                             prim.v0, prim.v1, prim.v2,
-                            vram, width,
                             pixelStartX, 
                             pixelStartY, 
                             pixelEndX, 
