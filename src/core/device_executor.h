@@ -2,6 +2,7 @@
 
 #include "../api/command_buffer.h"
 #include "mosaic_tiling.h"
+#include "job_system.h"
 #include <cstdint>
 #include <vector>
 #include <algorithm>
@@ -10,6 +11,7 @@ class MosaicDeviceExecutor {
 private:
     MosaicTileGrid m_tileGrid;
     bool m_gridInitialized = false;
+    MosaicJobSystem m_jobSystem;
     
     // Pipeline State Registers
     const MosaicVertexBuffer* m_currentVertexBuffer = nullptr;

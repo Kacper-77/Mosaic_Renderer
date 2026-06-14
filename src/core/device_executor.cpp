@@ -174,7 +174,6 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer) {
                 const Vertex* vertices = m_currentVertexBuffer->GetRawData();
                 const uint32_t* indices = m_currentIndexBuffer->GetRawData();
 
-                // 45 degree test
                 static float angle = 0.0f;
                 angle += 0.01f;
                  
@@ -222,26 +221,27 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer) {
                     BinTriangle(v0, v1, v2, m_width, m_height);
                 }
 
-                // RENDER
-                for (const auto& tile : m_tileGrid.tiles) {
-                    if (tile.primitives.empty())
-                        continue;
+                // RENDER | MULTITHREAD DISPATCH
+                if (!m_tileGrid.tiles.empty()) {
+                    m_jobSystem.Dispatch(m_tileGrid.tiles.size(), [this](size_t tileIdx, [[maybe_unused]] int workerId) {
+                        const auto& tile = m_tileGrid.tiles[tileIdx];
+                        if (tile.primitives.empty()) return;
 
-                    int pixelStartX = tile.x * TILE_SIZE;
-                    int pixelStartY = tile.y * TILE_SIZE;
+                        int pixelStartX = tile.x * TILE_SIZE;
+                        int pixelStartY = tile.y * TILE_SIZE;
+                        int pixelEndX = std::min(m_width,  pixelStartX + TILE_SIZE);
+                        int pixelEndY = std::min(m_height, pixelStartY + TILE_SIZE);
 
-                    int pixelEndX = std::min(m_width,  pixelStartX + TILE_SIZE);
-                    int pixelEndY = std::min(m_height, pixelStartY + TILE_SIZE);
-
-                    for (const auto& prim : tile.primitives) {
-                        RasterizeTriangle(
-                            prim.v0, prim.v1, prim.v2,
-                            pixelStartX, 
-                            pixelStartY, 
-                            pixelEndX, 
-                            pixelEndY
-                        );
-                    }
+                        for (const auto& prim : tile.primitives) {
+                            RasterizeTriangle(
+                                prim.v0, prim.v1, prim.v2,
+                                pixelStartX, 
+                                pixelStartY, 
+                                pixelEndX, 
+                                pixelEndY
+                            );
+                        }
+                    });
                 }
                 break;
             }

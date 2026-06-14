@@ -28,6 +28,7 @@ endif()
 set(SOURCES
     src/api/command_buffer.cpp
     src/core/device_executor.cpp
+    src/core/job_system.cpp
     src/main.cpp
 )
 
