@@ -3,18 +3,17 @@
 #include <cstring>
 #include <iostream>
 
-static uint8_t ColorSat(float num) {
-    if (num < 0.0f) return 0;
-    if (num > 255.0f) return 255;
-    return static_cast<uint8_t>(num);
-}
+namespace {
 
-static float Edge(float ax, float ay,
-                  float bx, float by,
-                  float px, float py) {
-    return (px - ax) * (by - ay)
-         - (py - ay) * (bx - ax);
-}
+    float Edge(float ax, float ay,
+               float bx, float by,
+               float px, float py) 
+    {
+        return (px - ax) * (by - ay)
+            - (py - ay) * (bx - ax);
+    }
+
+};
 
 void MosaicDeviceExecutor::RasterizeTriangle(const Vertex& v0,
                               const Vertex& v1,
@@ -38,19 +37,19 @@ void MosaicDeviceExecutor::RasterizeTriangle(const Vertex& v0,
 
     // "Unpacking" colors of each vertex
     uint32_t colorA = a.color;
-    float aR = static_cast<float>((colorA >> 16) & 0xFF);
-    float aG = static_cast<float>((colorA >> 8)  & 0xFF);
-    float aB = static_cast<float>((colorA)       & 0xFF);
+    float aR = static_cast<float>((colorA >> 16) & 0xFF) / 255.0f;
+    float aG = static_cast<float>((colorA >> 8)  & 0xFF) / 255.0f;
+    float aB = static_cast<float>((colorA)       & 0xFF) / 255.0f;
 
     uint32_t colorB = b.color;
-    float bR = static_cast<float>((colorB >> 16) & 0xFF);
-    float bG = static_cast<float>((colorB >> 8)  & 0xFF);
-    float bB = static_cast<float>((colorB)       & 0xFF);
+    float bR = static_cast<float>((colorB >> 16) & 0xFF) / 255.0f;
+    float bG = static_cast<float>((colorB >> 8)  & 0xFF) / 255.0f;
+    float bB = static_cast<float>((colorB)       & 0xFF) / 255.0f;
 
     uint32_t colorC = c.color;
-    float cR = static_cast<float>((colorC >> 16) & 0xFF);
-    float cG = static_cast<float>((colorC >> 8)  & 0xFF);
-    float cB = static_cast<float>((colorC)       & 0xFF);
+    float cR = static_cast<float>((colorC >> 16) & 0xFF) / 255.0f;
+    float cG = static_cast<float>((colorC >> 8)  & 0xFF) / 255.0f;
+    float cB = static_cast<float>((colorC)       & 0xFF) / 255.0f;
 
     const float invArea = 1.0f / area;
 
@@ -86,11 +85,28 @@ void MosaicDeviceExecutor::RasterizeTriangle(const Vertex& v0,
                     float g = w0 * aG_inv + w1 * bG_inv + w2 * cG_inv;
                     float b = w0 * aB_inv + w1 * bB_inv + w2 * cB_inv;
 
-                    uint8_t finalR = ColorSat(r);
-                    uint8_t finalG = ColorSat(g);
-                    uint8_t finalB = ColorSat(b);
+                    FragmentInput fragIn;
+                    fragIn.x = static_cast<float>(x);
+                    fragIn.y = static_cast<float>(y);
+                    fragIn.z = pixelZ;
+                    fragIn.vertexColor = { r, g, b };
 
-                    m_vram[pixelIdx] = (0xFF << 24) | (finalR << 16) | (finalG << 8) | finalB;
+                    fragIn.posWorld = Vector3(
+                        (static_cast<float>(x) - m_width * 0.5f)  / (m_width * 0.5f),
+                        (static_cast<float>(y) - m_height * 0.5f) / (m_height * 0.5f),
+                        pixelZ
+                    );
+
+                    float nx = fragIn.posWorld.x;
+                    float ny = fragIn.posWorld.y;
+                    
+                    float zSq = 1.0f - (nx * nx + ny * ny);
+                    float nz = (zSq > 0.0f) ? -std::sqrt(zSq) : 0.0f; 
+                    
+                    fragIn.normal = Vector3(nx, ny, nz).Normalized();
+                    uint32_t finalColor = m_currentPixelShader(fragIn);
+
+                    m_vram[pixelIdx] = finalColor;
                 }
             }
         }

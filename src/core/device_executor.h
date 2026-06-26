@@ -3,6 +3,7 @@
 #include "../api/command_buffer.h"
 #include "mosaic_tiling.h"
 #include "job_system.h"
+#include "shader.h"
 #include <cstdint>
 #include <vector>
 #include <algorithm>
@@ -23,6 +24,8 @@ private:
     
     int m_width = 0;
     int m_height = 0;
+
+    uint32_t (*m_currentPixelShader)(const FragmentInput&) = Shaders::LambertPixelShader;
 
 public:
     explicit MosaicDeviceExecutor(int width, int height) {

@@ -130,10 +130,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     };
 
     MosaicVertexBuffer vbo;
-    vbo.SetData(sphereVertices.data(), sphereVertices.size());
+    vbo.SetData(cubeVertices, 8);
 
     MosaicIndexBuffer ibo;
-    ibo.SetData(sphereIndices.data(), sphereIndices.size());
+    ibo.SetData(cubeIndices, 36);
 
     MosaicCommandBuffer cmdBuffer;
     MosaicDeviceExecutor executor(1080, 720);
@@ -156,7 +156,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         cmdBuffer.CmdBindVertexBuffer(&vbo);
         cmdBuffer.CmdBindIndexBuffer(&ibo);
         
-        cmdBuffer.CmdDrawIndexed(sphereIndices.size());
+        cmdBuffer.CmdDrawIndexed(36);
 
         executor.Execute(cmdBuffer);
 

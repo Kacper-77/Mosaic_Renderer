@@ -29,7 +29,8 @@ struct Vector4 {
 /* Vertex Layout */
 struct Vertex {
     Vector4 position;
-    uint32_t color; // Format: 0xAARRGGBB
+    uint32_t color;
+    // Vector3 normalPos;
 };
 
 struct Matrix4 {
