@@ -151,7 +151,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         uint32_t clear_color = (0xFF << 24) | (color_cycle << 16) | (20 << 8) | 30;
 
         cmdBuffer.Reset();
-        cmdBuffer.CmdClear(0xFAFAFA);
+        cmdBuffer.CmdClear(0x000000);
         
         cmdBuffer.CmdBindVertexBuffer(&vbo);
         cmdBuffer.CmdBindIndexBuffer(&ibo);
