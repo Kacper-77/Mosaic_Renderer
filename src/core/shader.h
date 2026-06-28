@@ -2,7 +2,6 @@
 
 #include "../api/mosaic_types.h" 
 #include <algorithm>
-#include <cmath>
 
 struct VertexColor {
     float r, g, b;

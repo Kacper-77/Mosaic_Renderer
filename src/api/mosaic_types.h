@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cmath>
 
 struct Vector3 {
     float x, y, z;
@@ -30,7 +31,6 @@ struct Vector4 {
 struct Vertex {
     Vector4 position;
     uint32_t color;
-    // Vector3 normalPos;
 };
 
 struct Matrix4 {
@@ -87,8 +87,7 @@ struct Matrix4 {
     }
 
     static Matrix4 Perspective(float fovDegrees, float aspect, float nearPlane, float farPlane) {
-        Matrix4 mat;
-        std::memset(&mat, 0, sizeof(Matrix4));
+        Matrix4 mat{};
 
         float fovRad = fovDegrees * (M_PI / 180.0f);
         float tanHalfFov = std::tan(fovRad / 2.0f);

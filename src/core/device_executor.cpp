@@ -1,7 +1,6 @@
 #include "device_executor.h"
 #include "../api/mosaic_buffers.h"
 #include <cstring>
-#include <iostream>
 
 namespace {
 

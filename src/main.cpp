@@ -1,5 +1,4 @@
 #include <SDL2/SDL.h>
-#include <iostream>
 #include <vector>
 #include "api/command_buffer.h"
 #include "api/mosaic_buffers.h"
@@ -140,15 +139,11 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
 
     bool is_running = true;
     SDL_Event event;
-    uint8_t color_cycle = 0;
 
     while (is_running) {
         while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT) is_running = false;
         }
-
-        color_cycle++;
-        uint32_t clear_color = (0xFF << 24) | (color_cycle << 16) | (20 << 8) | 30;
 
         cmdBuffer.Reset();
         cmdBuffer.CmdClear(0x000000);
