@@ -32,7 +32,7 @@ public:
         ResizeBuffers(width, height);
     }
 
-    void Execute(const MosaicCommandBuffer& cmdBuffer);
+    void Execute(const MosaicCommandBuffer& cmdBuffer, const Matrix4& modelViewProjection);
     void BinTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, int width, int height);
     void RasterizeTriangle(const Vertex& v0,
                               const Vertex& v1,

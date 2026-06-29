@@ -142,7 +142,7 @@ void MosaicDeviceExecutor::BinTriangle(const Vertex& v0, const Vertex& v1, const
     }
 }
 
-void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer) {
+void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, const Matrix4& modelViewProjection) {
     if (!m_gridInitialized) {
         m_tileGrid.Initialize(m_width, m_height);
         m_gridInitialized = true;
@@ -189,17 +189,6 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer) {
                 const Vertex* vertices = m_currentVertexBuffer->GetRawData();
                 const uint32_t* indices = m_currentIndexBuffer->GetRawData();
 
-                static float angle = 0.0f;
-                angle += 0.01f;
-                 
-                Matrix4 rotation = Matrix4::RotateX(angle) * Matrix4::RotateY(angle);
-
-                Matrix4 translation = Matrix4::Translate(0.0f, 0.0f, -2.5f); 
-
-                Matrix4 projection = Matrix4::Perspective(60.0f, (float)m_width / m_height, 0.1f, 100.0f);
-
-                Matrix4 modelMatrix = projection * translation * rotation;
-
                 // Viewport Transform
                 float halfWidth  = m_width * 0.5f;
                 float halfHeight = m_height * 0.5f;
@@ -211,9 +200,9 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer) {
                     Vertex v2 = vertices[indices[i + 2]];
 
                     // 2. STAGE: VERTEX SHADER
-                    Vector4 p0 = modelMatrix.Multiply({v0.position.x, v0.position.y, v0.position.z, v0.position.w});
-                    Vector4 p1 = modelMatrix.Multiply({v1.position.x, v1.position.y, v1.position.z, v1.position.w});
-                    Vector4 p2 = modelMatrix.Multiply({v2.position.x, v2.position.y, v2.position.z, v2.position.w});
+                    Vector4 p0 = modelViewProjection.Multiply({v0.position.x, v0.position.y, v0.position.z, v0.position.w});
+                    Vector4 p1 = modelViewProjection.Multiply({v1.position.x, v1.position.y, v1.position.z, v1.position.w});
+                    Vector4 p2 = modelViewProjection.Multiply({v2.position.x, v2.position.y, v2.position.z, v2.position.w});
 
                     // 3. STAGE: PERSPECTIVE DIVIDE
                     p0.x /= p0.w; p0.y /= p0.w; p0.z /= p0.w;

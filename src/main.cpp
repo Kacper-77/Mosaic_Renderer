@@ -153,7 +153,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         
         cmdBuffer.CmdDrawIndexed(36);
 
-        executor.Execute(cmdBuffer);
+        static float angle = 0;
+        angle += 0.01;
+
+        Matrix4 rotation = Matrix4::RotateX(angle) * Matrix4::RotateY(angle);
+        Matrix4 translation = Matrix4::Translate(0.0f, 0.0f, -2.5f); 
+        Matrix4 projection = Matrix4::Perspective(60.0f, (float)SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
+
+        Matrix4 mvp = projection * translation * rotation;
+
+        executor.Execute(cmdBuffer, mvp);
 
         SDL_UpdateTexture(streaming_texture, nullptr, executor.GetVram(), SCREEN_WIDTH * sizeof(uint32_t));
         SDL_RenderClear(renderer);
