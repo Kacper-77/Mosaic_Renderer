@@ -1,4 +1,5 @@
 #include "command_buffer.h"
+#include "mosaic_types.h"
 #include <cstring>
 
 void MosaicCommandBuffer::Reset() {
@@ -35,4 +36,12 @@ void MosaicCommandBuffer::CmdDrawIndexed(uint32_t indexCount) {
     m_buffer.resize(offset + sizeof(CommandDrawIndexed));
     CommandDrawIndexed cmd = { indexCount };
     std::memcpy(&m_buffer[offset], &cmd, sizeof(CommandDrawIndexed));
+}
+
+void MosaicCommandBuffer::CmdBindTransform(Matrix4* matrix) {
+    m_buffer.push_back(static_cast<uint8_t>(CommandType::BindTransform));
+    size_t offset = m_buffer.size();
+    m_buffer.resize(offset + sizeof(CommandType::BindTransform));
+    CommandBindTransform cmd = { matrix };
+    std::memcpy(&m_buffer[offset], &cmd, sizeof(CommandBindTransform));
 }

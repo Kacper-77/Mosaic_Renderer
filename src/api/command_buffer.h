@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mosaic_types.h"
 #include <vector>
 #include <cstdint>
 
@@ -10,7 +11,8 @@ enum class CommandType : uint8_t {
     Clear,
     BindVertexBuffer,
     BindIndexBuffer,
-    DrawIndexed
+    DrawIndexed,
+    BindTransform
 };
 
 struct CommandClear {
@@ -29,6 +31,10 @@ struct CommandDrawIndexed {
     uint32_t indexCount;
 };
 
+struct CommandBindTransform {
+    Matrix4* matrix;
+};
+
 class MosaicCommandBuffer {
 private:
     std::vector<uint8_t> m_buffer;
@@ -36,6 +42,7 @@ private:
 public:
     void Reset();
     void CmdClear(uint32_t color);
+    void CmdBindTransform(Matrix4* matrix);
     void CmdBindVertexBuffer(const MosaicVertexBuffer* vertexBuffer);
     void CmdBindIndexBuffer(const MosaicIndexBuffer* indexBuffer);
     void CmdDrawIndexed(uint32_t indexCount);
