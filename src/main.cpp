@@ -36,7 +36,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         uint8_t g = static_cast<uint8_t>((z + CONE_RADIUS) / (2.0f * CONE_RADIUS) * 255);
         uint32_t color = (0xFF << 24) | (r << 16) | (g << 8) | 0xFF;
 
-        coneVertices.push_back({ { x, y, z, 1.0f }, color });
+        coneVertices.push_back({ { x, y, z, 1.0f }, color, { x, y, z } });
     }
 
     for (int i = 0; i < CONE_SEGMENTS; ++i) {
@@ -76,7 +76,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
             uint8_t b = static_cast<uint8_t>((zPos / SPHERE_RADIUS * 0.5f + 0.5f) * 255);
             uint32_t color = (0xFF << 24) | (r << 16) | (g << 8) | b;
 
-            sphereVertices.push_back({ { xPos, yPos, zPos, 1.0f }, color });
+            Vector3 normal{ xPos / SPHERE_RADIUS, yPos / SPHERE_RADIUS, zPos / SPHERE_RADIUS };
+
+            sphereVertices.push_back({ { xPos, yPos, zPos, 1.0f }, color, { xPos, yPos, zPos } });
         }
     }
 
@@ -108,15 +110,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     };
 
     Vertex cubeVertices[] = {
-        { { -0.5f,  0.5f,  0.5f, 1.0f }, 0xFFFF0000 }, 
-        { {  0.5f,  0.5f,  0.5f, 1.0f }, 0xFF00FF00 }, 
-        { {  0.5f, -0.5f,  0.5f, 1.0f }, 0xFF0000FF }, 
-        { { -0.5f, -0.5f,  0.5f, 1.0f }, 0xFFFFFF00 }, 
+        { { -0.5f,  0.5f,  0.5f, 1.0f }, 0xFFFF0000, Vector3(-0.5f,  0.5f,  0.5f)  }, 
+        { {  0.5f,  0.5f,  0.5f, 1.0f }, 0xFF00FF00, Vector3( 0.5f,  0.5f,  0.5f)  }, 
+        { {  0.5f, -0.5f,  0.5f, 1.0f }, 0xFF0000FF, Vector3(  0.5f, -0.5f,  0.5f) }, 
+        { { -0.5f, -0.5f,  0.5f, 1.0f }, 0xFFFFFF00, Vector3(-0.5f, -0.5f,  0.5f)  }, 
 
-        { { -0.5f,  0.5f, -0.5f, 1.0f }, 0xFFFF00FF }, 
-        { {  0.5f,  0.5f, -0.5f, 1.0f }, 0xFF00FFFF }, 
-        { {  0.5f, -0.5f, -0.5f, 1.0f }, 0xFFFFFFFF }, 
-        { { -0.5f, -0.5f, -0.5f, 1.0f }, 0xFF808080 }  
+        { { -0.5f,  0.5f, -0.5f, 1.0f }, 0xFFFF00FF, Vector3(-0.5f,  0.5f, -0.5f)  }, 
+        { {  0.5f,  0.5f, -0.5f, 1.0f }, 0xFF00FFFF, Vector3( 0.5f,  0.5f, -0.5f)  }, 
+        { {  0.5f, -0.5f, -0.5f, 1.0f }, 0xFFFFFFFF, Vector3(  0.5f, -0.5f, -0.5f) }, 
+        { { -0.5f, -0.5f, -0.5f, 1.0f }, 0xFF808080, Vector3(-0.5f, -0.5f, -0.5f)  }
     };
 
     uint32_t cubeIndices[] = {
@@ -162,7 +164,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
 
         Matrix4 mvp = projection * translation * rotation;
 
-        executor.Execute(cmdBuffer, mvp);
+        executor.Execute(cmdBuffer, mvp);  // <- CmdBindTransform needed
 
         SDL_UpdateTexture(streaming_texture, nullptr, executor.GetVram(), SCREEN_WIDTH * sizeof(uint32_t));
         SDL_RenderClear(renderer);

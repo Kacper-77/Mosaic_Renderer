@@ -6,7 +6,7 @@
 struct Vector3 {
     float x, y, z;
 
-    Vector3() : x(0.0f), y(0.0f), z(0.0f) {}
+    Vector3() : x{0.0f}, y{0.0f}, z{0.0f} {}
     Vector3(float _x, float _y, float _z) : x{_x}, y{_y}, z{_z} {}
 
     Vector3 operator-(const Vector3& other) const { return Vector3(x - other.x, y - other.y, z - other.z); }
@@ -31,6 +31,7 @@ struct Vector4 {
 struct Vertex {
     Vector4 position;
     uint32_t color;
+    Vector3 normalPos;
 };
 
 struct Matrix4 {
@@ -48,6 +49,14 @@ struct Matrix4 {
             v.x * m[1][0] + v.y * m[1][1] + v.z * m[1][2] + v.w * m[1][3],  // Y
             v.x * m[2][0] + v.y * m[2][1] + v.z * m[2][2] + v.w * m[2][3],  // Z
             v.x * m[3][0] + v.y * m[3][1] + v.z * m[3][2] + v.w * m[3][3]   // W
+        };
+    }
+
+    Vector3 MultiplyVec3(const Vector3& v) const {
+        return {
+            v.x * m[0][0] + v.y * m[0][1] + v.z * m[0][2],
+            v.x * m[1][0] + v.y * m[1][1] + v.z * m[1][2],
+            v.x * m[2][0] + v.y * m[2][1] + v.z * m[2][2]
         };
     }
 

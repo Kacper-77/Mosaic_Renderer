@@ -56,6 +56,10 @@ void MosaicDeviceExecutor::RasterizeTriangle(const Vertex& v0,
     float bR_inv = bR * invArea; float bG_inv = bG * invArea; float bB_inv = bB * invArea;
     float cR_inv = cR * invArea; float cG_inv = cG * invArea; float cB_inv = cB * invArea;
 
+    float aNx_inv = a.normalPos.x * invArea; float aNy_inv = a.normalPos.y * invArea; float aNz_inv = a.normalPos.z * invArea;
+    float bNx_inv = b.normalPos.x * invArea; float bNy_inv = b.normalPos.y * invArea; float bNz_inv = b.normalPos.z * invArea;
+    float cNx_inv = c.normalPos.x * invArea; float cNy_inv = c.normalPos.y * invArea; float cNz_inv = c.normalPos.z * invArea;
+
     for (int y = y0; y < y1; ++y) {
         for (int x = x0; x < x1; ++x) {
             float px = x + 0.5f;
@@ -84,6 +88,10 @@ void MosaicDeviceExecutor::RasterizeTriangle(const Vertex& v0,
                     float g = w0 * aG_inv + w1 * bG_inv + w2 * cG_inv;
                     float b = w0 * aB_inv + w1 * bB_inv + w2 * cB_inv;
 
+                    float nx = w0 * aNx_inv + w1 * bNx_inv + w2 * cNx_inv;
+                    float ny = w0 * aNy_inv + w1 * bNy_inv + w2 * cNy_inv;
+                    float nz = w0 * aNz_inv + w1 * bNz_inv + w2 * cNz_inv;
+
                     FragmentInput fragIn;
                     fragIn.x = static_cast<float>(x);
                     fragIn.y = static_cast<float>(y);
@@ -95,14 +103,9 @@ void MosaicDeviceExecutor::RasterizeTriangle(const Vertex& v0,
                         (static_cast<float>(y) - m_height * 0.5f) / (m_height * 0.5f),
                         pixelZ
                     );
-
-                    float nx = fragIn.posWorld.x;
-                    float ny = fragIn.posWorld.y;
-                    
-                    float zSq = 1.0f - (nx * nx + ny * ny);
-                    float nz = (zSq > 0.0f) ? -std::sqrt(zSq) : 0.0f; 
                     
                     fragIn.normal = Vector3(nx, ny, nz).Normalized();
+
                     uint32_t finalColor = m_currentPixelShader(fragIn);
 
                     m_vram[pixelIdx] = finalColor;
@@ -203,6 +206,10 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, const M
                     Vector4 p0 = modelViewProjection.Multiply({v0.position.x, v0.position.y, v0.position.z, v0.position.w});
                     Vector4 p1 = modelViewProjection.Multiply({v1.position.x, v1.position.y, v1.position.z, v1.position.w});
                     Vector4 p2 = modelViewProjection.Multiply({v2.position.x, v2.position.y, v2.position.z, v2.position.w});
+
+                    v0.normalPos = modelViewProjection.MultiplyVec3(vertices[indices[i]].normalPos).Normalized();
+                    v1.normalPos = modelViewProjection.MultiplyVec3(vertices[indices[i + 1]].normalPos).Normalized();
+                    v2.normalPos = modelViewProjection.MultiplyVec3(vertices[indices[i + 2]].normalPos).Normalized();
 
                     // 3. STAGE: PERSPECTIVE DIVIDE
                     p0.x /= p0.w; p0.y /= p0.w; p0.z /= p0.w;
