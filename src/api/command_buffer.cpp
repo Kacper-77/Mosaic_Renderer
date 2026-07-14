@@ -38,10 +38,10 @@ void MosaicCommandBuffer::CmdDrawIndexed(uint32_t indexCount) {
     std::memcpy(&m_buffer[offset], &cmd, sizeof(CommandDrawIndexed));
 }
 
-void MosaicCommandBuffer::CmdBindTransform(Matrix4* matrix) {
+void MosaicCommandBuffer::CmdBindTransform(const Matrix4& matrix) {
     m_buffer.push_back(static_cast<uint8_t>(CommandType::BindTransform));
     size_t offset = m_buffer.size();
-    m_buffer.resize(offset + sizeof(CommandType::BindTransform));
+    m_buffer.resize(offset + sizeof(CommandBindTransform));
     CommandBindTransform cmd = { matrix };
     std::memcpy(&m_buffer[offset], &cmd, sizeof(CommandBindTransform));
 }

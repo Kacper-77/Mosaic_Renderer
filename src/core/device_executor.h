@@ -17,6 +17,7 @@ private:
     // Pipeline State Registers
     const MosaicVertexBuffer* m_currentVertexBuffer = nullptr;
     const MosaicIndexBuffer* m_currentIndexBuffer  = nullptr;
+    Matrix4 m_currentMVP;
 
     // Buffers
     std::vector<float>    m_zBuffer;
@@ -32,7 +33,7 @@ public:
         ResizeBuffers(width, height);
     }
 
-    void Execute(const MosaicCommandBuffer& cmdBuffer, const Matrix4& modelViewProjection);
+    void Execute(const MosaicCommandBuffer& cmdBuffer);
     void BinTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, int width, int height);
     void RasterizeTriangle(const Vertex& v0,
                               const Vertex& v1,

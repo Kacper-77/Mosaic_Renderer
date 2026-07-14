@@ -32,7 +32,7 @@ struct CommandDrawIndexed {
 };
 
 struct CommandBindTransform {
-    Matrix4* matrix;
+    Matrix4 matrix;
 };
 
 class MosaicCommandBuffer {
@@ -42,7 +42,7 @@ private:
 public:
     void Reset();
     void CmdClear(uint32_t color);
-    void CmdBindTransform(Matrix4* matrix);
+    void CmdBindTransform(const Matrix4& matrix);
     void CmdBindVertexBuffer(const MosaicVertexBuffer* vertexBuffer);
     void CmdBindIndexBuffer(const MosaicIndexBuffer* indexBuffer);
     void CmdDrawIndexed(uint32_t indexCount);

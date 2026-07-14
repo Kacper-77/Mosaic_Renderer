@@ -136,13 +136,18 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     MosaicIndexBuffer ibo;
     ibo.SetData(cubeIndices, 36);
 
+    MosaicVertexBuffer sphereVbo;
+    sphereVbo.SetData(sphereVertices.data(), sphereVertices.size());
+    MosaicIndexBuffer sphereIbo;
+    sphereIbo.SetData(sphereIndices.data(), sphereIndices.size());
+
     MosaicCommandBuffer cmdBuffer;
     MosaicDeviceExecutor executor(1080, 720);
 
     bool is_running = true;
     SDL_Event event;
 
-    while (is_running) {
+while (is_running) {
         while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT) is_running = false;
         }
@@ -152,19 +157,44 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         
         cmdBuffer.CmdBindVertexBuffer(&vbo);
         cmdBuffer.CmdBindIndexBuffer(&ibo);
-        
-        cmdBuffer.CmdDrawIndexed(36);
 
         static float angle = 0;
-        angle += 0.01;
+        angle += 0.01f;
 
-        Matrix4 rotation = Matrix4::RotateX(angle) * Matrix4::RotateY(angle);
-        Matrix4 translation = Matrix4::Translate(0.0f, 0.0f, -2.5f); 
         Matrix4 projection = Matrix4::Perspective(60.0f, (float)SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
 
-        Matrix4 mvp = projection * translation * rotation;
+        cmdBuffer.CmdBindVertexBuffer(&sphereVbo);
+        cmdBuffer.CmdBindIndexBuffer(&sphereIbo);
 
-        executor.Execute(cmdBuffer, mvp);  // <- CmdBindTransform needed
+        {
+            Matrix4 rotation = Matrix4::RotateX(angle) * Matrix4::RotateY(angle);
+            Matrix4 translation = Matrix4::Translate(-1.5f, 0.5f, -3.0f);
+            Matrix4 mvp = projection * translation * rotation;
+            
+            cmdBuffer.CmdBindTransform(mvp);
+            cmdBuffer.CmdDrawIndexed(sphereIndices.size());
+        }
+
+        {
+            Matrix4 rotation = Matrix4::RotateY(angle * 3.0f);
+            Matrix4 translation = Matrix4::Translate(0.0f, 0.0f, -2.5f);
+            Matrix4 mvp = projection * translation * rotation;
+            
+            cmdBuffer.CmdBindTransform(mvp);
+            cmdBuffer.CmdDrawIndexed(sphereIndices.size());
+        }
+
+        {
+            float bobbing = std::sin(angle * 2.0f) * 0.5f;
+            Matrix4 rotation = Matrix4::RotateZ(angle);
+            Matrix4 translation = Matrix4::Translate(1.5f, bobbing, -5.0f);
+            Matrix4 mvp = projection * translation * rotation;
+            
+            cmdBuffer.CmdBindTransform(mvp);
+            cmdBuffer.CmdDrawIndexed(sphereIndices.size());
+        }
+
+        executor.Execute(cmdBuffer);
 
         SDL_UpdateTexture(streaming_texture, nullptr, executor.GetVram(), SCREEN_WIDTH * sizeof(uint32_t));
         SDL_RenderClear(renderer);

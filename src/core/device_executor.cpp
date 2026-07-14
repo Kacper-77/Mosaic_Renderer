@@ -1,6 +1,7 @@
 #include "device_executor.h"
 #include "../api/mosaic_buffers.h"
 #include <cstring>
+#include <iostream>
 
 namespace {
 
@@ -145,7 +146,7 @@ void MosaicDeviceExecutor::BinTriangle(const Vertex& v0, const Vertex& v1, const
     }
 }
 
-void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, const Matrix4& modelViewProjection) {
+void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer) {
     if (!m_gridInitialized) {
         m_tileGrid.Initialize(m_width, m_height);
         m_gridInitialized = true;
@@ -182,6 +183,14 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, const M
                 m_currentIndexBuffer = cmd.buffer;
                 break;
             }
+            case CommandType::BindTransform: {
+               CommandBindTransform cmd;
+                std::memcpy(&cmd, &data[pc], sizeof(CommandBindTransform));
+                pc += sizeof(CommandBindTransform);
+                m_currentMVP = cmd.matrix;
+                break;
+                
+            }
             case CommandType::DrawIndexed: {
                 CommandDrawIndexed cmd;
                 std::memcpy(&cmd, &data[pc], sizeof(CommandDrawIndexed));
@@ -191,6 +200,7 @@ void MosaicDeviceExecutor::Execute(const MosaicCommandBuffer& cmdBuffer, const M
 
                 const Vertex* vertices = m_currentVertexBuffer->GetRawData();
                 const uint32_t* indices = m_currentIndexBuffer->GetRawData();
+                const Matrix4& modelViewProjection = m_currentMVP;
 
                 // Viewport Transform
                 float halfWidth  = m_width * 0.5f;
